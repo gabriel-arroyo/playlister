@@ -11,8 +11,8 @@ const SpotifyGenreOrganizer = () => {
   const [accessToken, setAccessToken] = useState('');
 
   // Spotify API configuration
-  const CLIENT_ID = 'abd78870df7945eeab6c97299e25815d';
-  const CLIENT_SECRET = 'f35b8fef7c414dffa30f1199cc38ed00';
+  const CLIENT_ID = import.meta.env.CLIENT_ID;
+  const CLIENT_SECRET = import.meta.env.CLIENT_SECRET;
   const REDIRECT_URI = 'https://bitmorph.net/callback';
   const SCOPES = [
     'user-read-private',
