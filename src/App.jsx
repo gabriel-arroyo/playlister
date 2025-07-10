@@ -452,6 +452,22 @@ const SpotifyGenreOrganizer = () => {
             </div>
           </div>
         )}
+
+        {/* Songs List Preview */}
+        {likedSongs.length > 0 && (
+          <div className="space-y-6 mt-10">
+            <h2 className="text-2xl font-bold mb-4">All Liked Songs</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {likedSongs.map((item, idx) => (
+                <div key={idx} className="bg-gray-800 rounded-lg p-4">
+                  <div className="font-medium text-lg mb-1">{item.track.name}</div>
+                  <div className="text-gray-400 mb-1">{item.track.artists.map(a => a.name).join(', ')}</div>
+                  <div className="text-gray-500 text-sm">{item.track.album.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
