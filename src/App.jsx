@@ -11,8 +11,9 @@ const SpotifyGenreOrganizer = () => {
   const [accessToken, setAccessToken] = useState('');
 
   // Spotify API configuration
-  const CLIENT_ID = import.meta.env.CLIENT_ID;
-  const CLIENT_SECRET = import.meta.env.CLIENT_SECRET;
+  console.log('Using Spotify API with CLIENT_ID:', import.meta.env.VITE_CLIENT_ID);
+  const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
+  const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
   const REDIRECT_URI = 'https://bitmorph.net/callback';
   const SCOPES = [
     'user-read-private',
@@ -260,6 +261,35 @@ const SpotifyGenreOrganizer = () => {
     setError('');
   };
 
+  if (!CLIENT_ID || CLIENT_ID === 'your_spotify_client_id' || !CLIENT_SECRET || CLIENT_SECRET === 'your_spotify_client_secret') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-black to-red-900 flex items-center justify-center">
+        <div className="text-center space-y-8 p-8">
+          <div className="flex items-center justify-center space-x-4">
+            <Music className="w-16 h-16 text-red-400" />
+            <h1 className="text-4xl font-bold text-white">Configuration Required</h1>
+          </div>
+          <p className="text-gray-300 text-lg max-w-md mx-auto">
+            Please set up your Spotify credentials to use this app.
+          </p>
+          <div className="text-sm text-gray-400 max-w-md mx-auto">
+            <p className="mb-4">To get started:</p>
+            <ol className="text-left space-y-2">
+              <li>1. Create a Spotify app at developer.spotify.com</li>
+              <li>2. Replace CLIENT_ID and CLIENT_SECRET in the code</li>
+              <li>3. Add your exact domain to redirect URIs</li>
+              <li>4. Make sure the redirect URI matches exactly</li>
+            </ol>
+            <div className="mt-4 p-3 bg-gray-700 rounded text-xs">
+              <p className="text-yellow-400 mb-2">Add this redirect URI to your Spotify app:</p>
+              <p className="break-all">{window.location.origin}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!accessToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-900 via-black to-green-900 flex items-center justify-center">
@@ -282,11 +312,16 @@ const SpotifyGenreOrganizer = () => {
               <p className="mb-4">⚠️ This is a demo application. To use it:</p>
               <ol className="text-left space-y-2">
                 <li>1. Create a Spotify app at developer.spotify.com</li>
-                <li>2. Replace CLIENT_ID and CLIENT_SECRET with your app's credentials</li>
-                <li>3. Add {window.location.origin}/callback to redirect URIs</li>
-                <li>4. The AI genre classification is currently mocked</li>
-                <li>5. For production, handle the token exchange on your backend</li>
+                <li>2. Replace CLIENT_ID and CLIENT_SECRET in the code</li>
+                <li>3. Add your exact domain to redirect URIs</li>
+                <li>4. Make sure the redirect URI matches exactly (no trailing slash)</li>
+                <li>5. The AI genre classification is currently mocked</li>
+                <li>6. For production, handle the token exchange on your backend</li>
               </ol>
+              <div className="mt-4 p-3 bg-gray-700 rounded text-xs">
+                <p className="text-yellow-400 mb-2">Current redirect URI:</p>
+                <p className="break-all">{window.location.origin}</p>
+              </div>
             </div>
         </div>
       </div>
