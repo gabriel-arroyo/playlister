@@ -14,7 +14,7 @@ const SpotifyGenreOrganizer = () => {
   console.log('Using Spotify API with CLIENT_ID:', import.meta.env.VITE_CLIENT_ID);
   const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
   const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
-  const REDIRECT_URI = 'https://bitmorph.net/callback';
+  const REDIRECT_URI = 'https://spplaylister.netlify.app/callback';
   const SCOPES = [
     'user-read-private',
     'user-read-email',
