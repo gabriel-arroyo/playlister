@@ -156,13 +156,36 @@ const SpotifyGenreOrganizer = () => {
         url = data.next;
       }
 
-      // For each song, fetch genres from artist and audio features
-      setProgress({ current: 0, total: songs.length, stage: 'Fetching genres and audio features for each song...' });
+      // Batch fetch audio features for all tracks (up to 100 per request)
+      setProgress({ current: 0, total: songs.length, stage: 'Fetching audio features in batches...' });
+      const trackIds = songs.map(item => item.track.id).filter(Boolean);
+      const audioFeaturesMap = {};
+      for (let i = 0; i < trackIds.length; i += 100) {
+        const batchIds = trackIds.slice(i, i + 100);
+        try {
+          const featuresRes = await fetch(`https://api.spotify.com/v1/audio-features?ids=${batchIds.join(',')}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          if (featuresRes.ok) {
+            const featuresData = await featuresRes.json();
+            if (featuresData.audio_features && Array.isArray(featuresData.audio_features)) {
+              featuresData.audio_features.forEach(f => {
+                if (f && f.id) audioFeaturesMap[f.id] = f;
+              });
+            }
+          }
+        } catch (e) {
+          // Ignore batch fetch errors
+        }
+        setProgress({ current: Math.min(i + 100, trackIds.length), total: trackIds.length, stage: 'Fetching audio features in batches...' });
+      }
+
+      // For each song, fetch genres from artist (no batch endpoint)
+      setProgress({ current: 0, total: songs.length, stage: 'Fetching genres for each song...' });
       for (let i = 0; i < songs.length; i++) {
         const track = songs[i].track;
         let artistId = track.artists && track.artists[0] && track.artists[0].id;
         let genres = [];
-        let audioFeatures = null;
         if (artistId) {
           try {
             // Fetch artist details
@@ -177,22 +200,9 @@ const SpotifyGenreOrganizer = () => {
             // Ignore genre fetch errors for individual songs
           }
         }
-        // Fetch audio features
-        if (track.id) {
-          try {
-            const featuresRes = await fetch(`https://api.spotify.com/v1/audio-features/${track.id}`, {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            if (featuresRes.ok) {
-              audioFeatures = await featuresRes.json();
-            }
-          } catch (e) {
-            // Ignore audio features fetch errors for individual songs
-          }
-        }
         songs[i].track.genres = genres;
-        songs[i].track.audio_features = audioFeatures;
-        setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres and audio features for each song...' });
+        songs[i].track.audio_features = audioFeaturesMap[track.id] || null;
+        setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres for each song...' });
       }
 
       setLikedSongs(songs);
