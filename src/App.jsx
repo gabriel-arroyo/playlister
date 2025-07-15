@@ -141,23 +141,45 @@ const SpotifyGenreOrganizer = () => {
   const fetchLikedSongs = async () => {
     setLoading(true);
     setProgress({ current: 0, total: 0, stage: 'Fetching liked songs...' });
-    
     try {
       const songs = [];
       let url = 'https://api.spotify.com/v1/me/tracks?limit=50';
-      
+      let total = 0;
       while (url) {
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const data = await response.json();
-        
         songs.push(...data.items);
-        setProgress({ current: songs.length, total: data.total, stage: 'Fetching liked songs...' });
-        
+        total = data.total;
+        setProgress({ current: songs.length, total: total, stage: 'Fetching liked songs...' });
         url = data.next;
       }
-      
+
+      // For each song, fetch genres from artist
+      setProgress({ current: 0, total: songs.length, stage: 'Fetching genres for each song...' });
+      for (let i = 0; i < songs.length; i++) {
+        const track = songs[i].track;
+        let artistId = track.artists && track.artists[0] && track.artists[0].id;
+        let genres = [];
+        if (artistId) {
+          try {
+            // Fetch artist details
+            const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (artistRes.ok) {
+              const artistData = await artistRes.json();
+              genres = artistData.genres || [];
+            }
+          } catch (e) {
+            // Ignore genre fetch errors for individual songs
+          }
+        }
+        songs[i].track.genres = genres;
+        setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres for each song...' });
+      }
+
       setLikedSongs(songs);
     } catch (err) {
       setError('Failed to fetch liked songs');
@@ -463,6 +485,12 @@ const SpotifyGenreOrganizer = () => {
                   <div className="font-medium text-lg mb-1">{item.track.name}</div>
                   <div className="text-gray-400 mb-1">{item.track.artists.map(a => a.name).join(', ')}</div>
                   <div className="text-gray-500 text-sm">{item.track.album.name}</div>
+                  <h1>Genres</h1>
+                  {item.track.genres && item.track.genres.length > 0 && (
+                    <div className="text-xs text-green-300 mt-2">
+                      Genres: {item.track.genres.join(', ')}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
