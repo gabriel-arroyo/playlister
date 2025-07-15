@@ -156,12 +156,13 @@ const SpotifyGenreOrganizer = () => {
         url = data.next;
       }
 
-      // For each song, fetch genres from artist
-      setProgress({ current: 0, total: songs.length, stage: 'Fetching genres for each song...' });
+      // For each song, fetch genres from artist and audio features
+      setProgress({ current: 0, total: songs.length, stage: 'Fetching genres and audio features for each song...' });
       for (let i = 0; i < songs.length; i++) {
         const track = songs[i].track;
         let artistId = track.artists && track.artists[0] && track.artists[0].id;
         let genres = [];
+        let audioFeatures = null;
         if (artistId) {
           try {
             // Fetch artist details
@@ -176,8 +177,22 @@ const SpotifyGenreOrganizer = () => {
             // Ignore genre fetch errors for individual songs
           }
         }
+        // Fetch audio features
+        if (track.id) {
+          try {
+            const featuresRes = await fetch(`https://api.spotify.com/v1/audio-features/${track.id}`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (featuresRes.ok) {
+              audioFeatures = await featuresRes.json();
+            }
+          } catch (e) {
+            // Ignore audio features fetch errors for individual songs
+          }
+        }
         songs[i].track.genres = genres;
-        setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres for each song...' });
+        songs[i].track.audio_features = audioFeatures;
+        setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres and audio features for each song...' });
       }
 
       setLikedSongs(songs);
@@ -480,19 +495,36 @@ const SpotifyGenreOrganizer = () => {
           <div className="space-y-6 mt-10">
             <h2 className="text-2xl font-bold mb-4">All Liked Songs</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {likedSongs.map((item, idx) => (
-                <div key={idx} className="bg-gray-800 rounded-lg p-4">
-                  <div className="font-medium text-lg mb-1">{item.track.name}</div>
-                  <div className="text-gray-400 mb-1">{item.track.artists.map(a => a.name).join(', ')}</div>
-                  <div className="text-gray-500 text-sm">{item.track.album.name}</div>
-                  <h1>Genres</h1>
-                  {item.track.genres && item.track.genres.length > 0 && (
-                    <div className="text-xs text-green-300 mt-2">
-                      Genres: {item.track.genres.join(', ')}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {likedSongs.map((item, idx) => {
+                const features = item.track.audio_features;
+                return (
+                  <div key={idx} className="bg-gray-800 rounded-lg p-4">
+                    <div className="font-medium text-lg mb-1">{item.track.name}</div>
+                    <div className="text-gray-400 mb-1">{item.track.artists.map(a => a.name).join(', ')}</div>
+                    <div className="text-gray-500 text-sm">{item.track.album.name}</div>
+                    {item.track.genres && item.track.genres.length > 0 && (
+                      <div className="text-xs text-green-300 mt-2">
+                        Genres: {item.track.genres.join(', ')}
+                      </div>
+                    )}
+                    {features && (
+                      <div className="text-xs text-blue-300 mt-2">
+                        <div>Audio Features:</div>
+                        <ul className="ml-2 list-disc">
+                          <li>Danceability: {features.danceability}</li>
+                          <li>Energy: {features.energy}</li>
+                          <li>Valence: {features.valence}</li>
+                          <li>Acousticness: {features.acousticness}</li>
+                          <li>Instrumentalness: {features.instrumentalness}</li>
+                          <li>Liveness: {features.liveness}</li>
+                          <li>Speechiness: {features.speechiness}</li>
+                          <li>Tempo: {features.tempo}</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
