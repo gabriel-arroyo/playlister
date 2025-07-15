@@ -168,6 +168,7 @@ const SpotifyGenreOrganizer = () => {
           });
           if (featuresRes.ok) {
             const featuresData = await featuresRes.json();
+            console.log(featuresData);
             if (featuresData.audio_features && Array.isArray(featuresData.audio_features)) {
               featuresData.audio_features.forEach(f => {
                 if (f && f.id) audioFeaturesMap[f.id] = f;
@@ -202,6 +203,8 @@ const SpotifyGenreOrganizer = () => {
         }
         songs[i].track.genres = genres;
         songs[i].track.audio_features = audioFeaturesMap[track.id] || null;
+        console.log(`Processed song ${i + 1}/${songs.length}: ${track.name} - Genres: ${genres.join(', ')}`);
+        console.log(`Audio Features:`, songs[i].track.audio_features);
         setProgress({ current: i + 1, total: songs.length, stage: 'Fetching genres for each song...' });
       }
 
@@ -517,6 +520,7 @@ const SpotifyGenreOrganizer = () => {
                         Genres: {item.track.genres.join(', ')}
                       </div>
                     )}
+                    {features && (
                       <div className="text-xs text-blue-300 mt-2">
                         <div>Audio Features:</div>
                         <ul className="ml-2 list-disc">
@@ -530,6 +534,7 @@ const SpotifyGenreOrganizer = () => {
                           <li>Tempo: {features.tempo}</li>
                         </ul>
                       </div>
+                    )}
                   </div>
                 );
               })}
