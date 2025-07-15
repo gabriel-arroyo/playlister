@@ -517,7 +517,6 @@ const SpotifyGenreOrganizer = () => {
                         Genres: {item.track.genres.join(', ')}
                       </div>
                     )}
-                    {features && (
                       <div className="text-xs text-blue-300 mt-2">
                         <div>Audio Features:</div>
                         <ul className="ml-2 list-disc">
@@ -531,7 +530,6 @@ const SpotifyGenreOrganizer = () => {
                           <li>Tempo: {features.tempo}</li>
                         </ul>
                       </div>
-                    )}
                   </div>
                 );
               })}
